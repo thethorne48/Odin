@@ -1,0 +1,2 @@
+# Odin
+Central resource management
