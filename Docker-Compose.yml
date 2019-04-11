@@ -1,0 +1,98 @@
+version: '3.7'
+services:
+  # dd-agent:
+  #   image: datadog/agent:6.10.2
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - /proc/:/host/proc/:ro
+  #     - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+  #     - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+  #     - /etc/passwd:/etc/passwd:ro
+  #   environment:
+  #     - DD_API_KEY=4d39c722fa00b1c9afd1be0a9a33cc3d
+  #     - DD_PROCESS_AGENT_ENABLED=true
+  consul:
+    # restart: always
+    build:
+      context: ./consul
+      args:
+        ALPINE_VERSION: '3.9.2'
+        CONSUL_VERSION: '1.4.4'
+        DOMAIN: yggdrasil
+        DATACENTER: asgard
+        NODE_NAME: odin
+    ports:
+      - "8300-8302:8300-8302"
+      # - "8300-8302:8300-8302/udp"
+      - "8500-8501:8500-8501"
+      # - "8500-8501:8500-8501/udp"
+      - "53:8600/udp"
+      - "53:8600"
+    environment: {}
+      # - CONSUL_HTTP_ADDR=https://consul:8501
+      # - CONSUL_CACERT=/consul/keys/yggdrasil-agent-ca.pem
+      # - CONSUL_CA_FILE=/consul/keys/yggdrasil-agent-ca.pem
+      # - CONSUL_CLIENT_CERT=/consul/keys/asgard-cli-yggdrasil-0.pem
+      # - CONSUL_CLIENT_KEY=/consul/keys/asgard-cli-yggdrasil-0-key.pem
+    volumes:
+      - consul_vol:/consul
+      - config_vol:/config
+  # vault:
+  #   restart: always
+  #   depends_on:
+  #     - consul
+  #   build:
+  #     context: ./vault
+  #     args:
+  #       ALPINE_VERSION: '3.9'
+  #       VAULT_VERSION: '1.1.0'
+  #       # CONSUL_CA_FILE: /config/keys/yggdrasil-agent-ca.pem
+  #       # CONSUL_CLIENT_CERT: /config/keys/asgard-cli-yggdrasil-0.pem
+  #       # CONSUL_CLIENT_KEY: /config/keys/asgard-cli-yggdrasil-0-key.pem
+  #   volumes:
+  #     - vault_vol:/vault
+  #     - config_vol:/config
+  #   ports:
+  #     - "8200-8201:8200-8201"
+  #   cap_add:
+  #     - IPC_LOCK
+    # environment:
+      # - VAULT_ADDR=http://localhost:8200
+      # - VAULT_FORMAT=json
+      # - CONSUL_HTTP_ADDR=https://consul:8500
+  #   logging:
+  #     driver: "json-file"
+  #   env_file:
+  #     - ./aws.env
+  #   secrets:
+  #     - aws
+  # nomad:
+  #   depends_on:
+  #     - consul
+  #     - vault
+  #   build:
+  #     context: ./nomad
+  #     args:
+  #       ALPINE_VERSION: '3.9'
+  #       NOMAD_VERSION: '0.8.7'
+  #       GLIBC_VERSION: '2.29'
+  #       # UBUNTU_VERSION: '18.04'
+  #       # PREFIX_DIR: /usr/glibc-compat
+  #   volumes:
+  #     - nomad_vol:/nomad
+  #     - config_vol:/config
+  #   ports:
+  #     - "4646-4647:4646-4647"
+  #     - "4648:4848/udp"
+  #   environment:
+  #     - CONSUL_HTTP_ADDR=https://consul:8500
+  #     - GLIBC_VERSION='2.29'
+  #     - PREFIX_DIR=/usr/glibc-compat
+volumes:
+  consul_vol:
+  # vault_vol:
+  # nomad_vol:
+  config_vol:
+secrets:
+  aws:
+    file: aws.env
